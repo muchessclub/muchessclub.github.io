@@ -155,14 +155,11 @@
       </tbody>
     </table>
     <script type="text/javascript">
-    
       var member_count = 0;
       var id_arr = [];
       var name_arr = [];
       var chesscom_arr = [];
       var lichessorg_arr = [];
-      var chesscom_api_arr = [];
-      var lichessorg_api_arr = [];
 
       const clubDataUrl = 'https://raw.githubusercontent.com/muchessclub/muchessclub.github.io/refs/heads/main/storage/members.json';
 
@@ -171,6 +168,23 @@
           throw new Error(`HTTP error! status: ${response.status} for ${response.url}`);
         }
         return response.json();
+      }
+
+      function createApiPromise(username, platform) {
+        if (username === "-") {
+          // Return a resolved promise with null for invalid usernames
+          return Promise.resolve(null);
+        }
+        
+        const url = platform === 'chess.com' 
+          ? `https://api.chess.com/pub/player/${username}/stats`
+          : `https://lichess.org/api/user/${username}`;
+          
+        const options = platform === 'lichess.org' 
+          ? { headers: { 'Accept': 'application/json' } }
+          : {};
+          
+        return fetch(url, options).then(handleResponse);
       }
 
       fetch(clubDataUrl)
@@ -183,35 +197,50 @@
             name_arr.push(clubData.info[i].name);
             chesscom_arr.push(clubData.info[i].chesscom);
             lichessorg_arr.push(clubData.info[i].lichessorg);
-            chesscom_api_arr.push(`https://api.chess.com/pub/player/${clubData.info[i].chesscom}/stats`);
-            lichessorg_api_arr.push(`https://lichess.org/api/user/${clubData.info[i].lichessorg}`);
           }
 
+          // Create arrays of promises, filtering out invalid usernames
+          const chesscomPromises = chesscom_arr.map(username => 
+            createApiPromise(username, 'chess.com')
+          );
+          
+          const lichessPromises = lichessorg_arr.map(username => 
+            createApiPromise(username, 'lichess.org')
+          );
+
           return Promise.all([
-            Promise.all(chesscom_api_arr.map(url => fetch(url).then(handleResponse))),
-            Promise.all(lichessorg_api_arr.map(url => 
-              fetch(url, {
-                headers: {
-                  'Accept': 'application/json'
-                }
-              }).then(handleResponse)
-            ))
+            Promise.all(chesscomPromises),
+            Promise.all(lichessPromises)
           ]);
         })
         .then(([chesscom_json_arr, lichessorg_json_arr]) => {
           var tableData = [];
           
           for(let i = 0; i < member_count; i++) {
+            // Handle chess.com data
+            const chesscomRatings = chesscom_arr[i] === "-" || !chesscom_json_arr[i] ? 
+              ['N/A', 'N/A', 'N/A'] : 
+              [
+                chesscom_json_arr[i].chess_rapid?.last?.rating || 'N/A',
+                chesscom_json_arr[i].chess_blitz?.last?.rating || 'N/A',
+                chesscom_json_arr[i].chess_bullet?.last?.rating || 'N/A'
+              ];
+
+            // Handle lichess.org data
+            const lichessRatings = lichessorg_arr[i] === "-" || !lichessorg_json_arr[i] ?
+              ['N/A', 'N/A', 'N/A'] :
+              [
+                lichessorg_json_arr[i].perfs?.rapid?.rating || 'N/A',
+                lichessorg_json_arr[i].perfs?.blitz?.rating || 'N/A',
+                lichessorg_json_arr[i].perfs?.bullet?.rating || 'N/A'
+              ];
+
             tableData.push([
               id_arr[i],
               chesscom_arr[i],
-              chesscom_json_arr[i].chess_rapid?.last?.rating || 'N/A',
-              chesscom_json_arr[i].chess_blitz?.last?.rating || 'N/A',
-              chesscom_json_arr[i].chess_bullet?.last?.rating || 'N/A',
+              ...chesscomRatings,
               lichessorg_arr[i],
-              lichessorg_json_arr[i].perfs?.rapid?.rating || 'N/A',
-              lichessorg_json_arr[i].perfs?.blitz?.rating || 'N/A',
-              lichessorg_json_arr[i].perfs?.bullet?.rating || 'N/A'
+              ...lichessRatings
             ]);
           }
 
