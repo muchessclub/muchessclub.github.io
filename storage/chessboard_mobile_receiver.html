@@ -2,17 +2,18 @@
 <html>
 <head>
     <title>Loading GitHub Content</title>
-</head>
-<body>
-    <div id="content"></div>
-    
     <script>
         fetch('https://raw.githubusercontent.com/muchessclub/muchessclub.github.io/refs/heads/main/storage/chessboard_mobile.html')
             .then(response => response.text())
             .then(data => {
-                document.getElementById('content').innerHTML = data;
+                document.open();
+                document.write(data);
+                document.close();
             })
             .catch(error => console.error('Error:', error));
     </script>
+</head>
+<body>
+    <p>Loading content...</p>
 </body>
 </html>
