@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chess</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+      integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+      crossorigin="anonymous"></script>
+    <!-- Add DataTables CSS and JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <style type="text/css">
+      .styled-table {
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.9em;
+        font-family: sans-serif;
+        min-width: 600px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+      }
+      .styled-table thead tr {
+        background-color: #de0000;
+        color: #ffffff;
+        text-align: left;
+      }
+      .styled-table th,
+      .styled-table td {
+        padding: 12px 15px;
+      }
+      .styled-table tbody tr {
+        border-bottom: 1px solid #dddddd;
+        background-color: #ffffff;
+      }
+      .styled-table tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+      }
+      .styled-table tbody tr:last-of-type {
+        border-bottom: 2px solid #de0000;
+      }
+      .tg {
+        border-collapse: collapse;
+        border-spacing: 0;
+      }
+      .tg td {
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        overflow: hidden;
+        padding: 10px 5px;
+        word-break: normal;
+      }
+      .tg th {
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        font-weight: normal;
+        overflow: hidden;
+        padding: 10px 5px;
+        word-break: normal;
+      }
+      .tg .tg-49iy {
+        font-family: Georgia, serif !important;
+        text-align: center;
+        vertical-align: center;
+        width: 100px;
+      }
+      .tg .tg-larh {
+        font-family: Georgia, serif !important;
+        text-align: center;
+        vertical-align: center;
+      }
+      .tg .tg-ilgv {
+        font-family: Georgia, serif !important;
+        text-align: left;
+        vertical-align: center;
+      }
+      .tg .tg-ilgv-center {
+        font-family: Georgia, serif !important;
+        text-align: center;
+        vertical-align: center;
+      }
+
+      /* DataTables specific styles */
+      .dataTables_wrapper .dataTables_length,
+      .dataTables_wrapper .dataTables_filter,
+      .dataTables_wrapper .dataTables_info,
+      .dataTables_wrapper .dataTables_processing,
+      .dataTables_wrapper .dataTables_paginate {
+        font-family: Georgia, serif !important;
+        margin: 10px 0;
+      }
+
+      /* Header styling */
+      table.dataTable thead th {
+        background-color: #de0000;
+        color: #ffffff;
+        font-family: Georgia, serif !important;
+      }
+
+      /* Cell styling */
+      table.dataTable tbody td {
+        font-family: Georgia, serif !important;
+        padding: 12px 15px;
+      }
+
+      /* Row styling */
+      table.dataTable tbody tr {
+        background-color: #ffffff;
+      }
+
+      table.dataTable tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+      }
+
+      /* Hover states */
+      table.dataTable tbody tr:hover {
+        background-color: #e6e6e6;
+      }
+
+      table.dataTable tbody tr:nth-of-type(even):hover {
+        background-color: #e0e0e0;
+      }
+
+      /* Shadow */
+      .dataTables_wrapper {
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+      }
+    </style>
+  </head>
+  <body>
+    <table id="Rankings" class="display styled-table tg">
+      <thead>
+        <tr>
+          <th class="tg-49iy" rowspan="2">ID</th>
+          <th class="tg-larh" colspan="4">chess.com rating</th>
+          <th class="tg-larh" colspan="4">lichess.org rating</th>
+        </tr>
+        <tr>
+          <th class="tg-larh">Username</th>
+          <th class="tg-larh">Rapid</th>
+          <th class="tg-larh">Blitz</th>
+          <th class="tg-larh">Bullet</th>
+          <th class="tg-larh">Username</th>
+          <th class="tg-larh">Rapid</th>
+          <th class="tg-larh">Blitz</th>
+          <th class="tg-larh">Bullet</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <script type="text/javascript">
+      var member_count = 0;
+      var id_arr = [];
+      var name_arr = [];
+      var chesscom_arr = [];
+      var lichessorg_arr = [];
+      var chesscom_api_arr = [];
+      var lichessorg_api_arr = [];
+
+      const clubDataUrl = 'https://raw.githubusercontent.com/muchessclub/muchessclub.github.io/refs/heads/main/members.json';
+
+      function handleResponse(response) {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status} for ${response.url}`);
+        }
+        return response.json();
+      }
+
+      fetch(clubDataUrl)
+        .then(handleResponse)
+        .then(clubData => {
+          member_count = clubData.info.length;
+          
+          for (let i = 0; i < member_count; i++) {
+            id_arr.push(clubData.info[i].id);
+            name_arr.push(clubData.info[i].name);
+            chesscom_arr.push(clubData.info[i].chesscom);
+            lichessorg_arr.push(clubData.info[i].lichessorg);
+            chesscom_api_arr.push(`https://api.chess.com/pub/player/${clubData.info[i].chesscom}/stats`);
+            lichessorg_api_arr.push(`https://lichess.org/api/user/${clubData.info[i].lichessorg}`);
+          }
+
+          return Promise.all([
+            Promise.all(chesscom_api_arr.map(url => fetch(url).then(handleResponse))),
+            Promise.all(lichessorg_api_arr.map(url => 
+              fetch(url, {
+                headers: {
+                  'Accept': 'application/json'
+                }
+              }).then(handleResponse)
+            ))
+          ]);
+        })
+        .then(([chesscom_json_arr, lichessorg_json_arr]) => {
+          var tableData = [];
+          
+          for(let i = 0; i < member_count; i++) {
+            tableData.push([
+              id_arr[i],
+              chesscom_arr[i],
+              chesscom_json_arr[i].chess_rapid?.last?.rating || 'N/A',
+              chesscom_json_arr[i].chess_blitz?.last?.rating || 'N/A',
+              chesscom_json_arr[i].chess_bullet?.last?.rating || 'N/A',
+              lichessorg_arr[i],
+              lichessorg_json_arr[i].perfs?.rapid?.rating || 'N/A',
+              lichessorg_json_arr[i].perfs?.blitz?.rating || 'N/A',
+              lichessorg_json_arr[i].perfs?.bullet?.rating || 'N/A'
+            ]);
+          }
+
+          // Initialize DataTable with sorting enabled and custom classes
+          $('#Rankings').DataTable({
+            data: tableData,
+            pageLength: 25,
+            order: [[0, 'asc']], // Default sort by ID
+            columnDefs: [
+              { 
+                targets: [2,3,4,6,7,8], // Rating columns
+                type: 'num',
+                render: function(data, type, row, meta) {
+                  if (type === 'display') {
+                    return data === -1 ? 'N/A' : data;
+                  }
+                  return data === 'N/A' ? -1 : data;
+                },
+                className: 'tg-ilgv'
+              },
+              {
+                targets: [0],
+                className: 'tg-ilgv-center'
+              },
+              {
+                targets: [0,1,5],
+                className: 'tg-ilgv'
+              }
+            ],
+            createdRow: function(row, data, dataIndex) {
+              $(row).addClass('tg-row');
+            }
+          });
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          document.getElementById('test').textContent = 'Error: ' + error.message;
+        });
+    </script>
+  </body>
+</html>
