@@ -160,6 +160,7 @@
       var name_arr = [];
       var chesscom_arr = [];
       var lichessorg_arr = [];
+      var dataTable = null;
 
       const clubDataUrl = 'https://raw.githubusercontent.com/muchessclub/muchessclub.github.io/refs/heads/main/storage/members.json';
 
@@ -172,7 +173,6 @@
 
       function createApiPromise(username, platform) {
         if (username === "-") {
-          // Return a resolved promise with null for invalid usernames
           return Promise.resolve(null);
         }
         
@@ -184,12 +184,25 @@
           ? { headers: { 'Accept': 'application/json' } }
           : {};
           
-        return fetch(url, options).then(handleResponse);
+        return fetch(url, options)
+          .then(handleResponse)
+          .catch(error => {
+            console.error(`Error fetching ${platform} data for ${username}:`, error);
+            return null; // Return null on error so the table can still be populated
+          });
       }
 
       fetch(clubDataUrl)
         .then(handleResponse)
+        .catch(error => {
+          console.error('Error fetching club data:', error);
+          throw error; // Re-throw as we can't proceed without club data
+        })
         .then(clubData => {
+          if (!clubData || !Array.isArray(clubData.info)) {
+            throw new Error('Invalid club data format');
+          }
+
           member_count = clubData.info.length;
           
           for (let i = 0; i < member_count; i++) {
@@ -217,22 +230,22 @@
           var tableData = [];
           
           for(let i = 0; i < member_count; i++) {
-            // Handle chess.com data
+            // Handle chess.com data with additional null checks
             const chesscomRatings = chesscom_arr[i] === "-" || !chesscom_json_arr[i] ? 
               ['N/A', 'N/A', 'N/A'] : 
               [
-                chesscom_json_arr[i].chess_rapid?.last?.rating || 'N/A',
-                chesscom_json_arr[i].chess_blitz?.last?.rating || 'N/A',
-                chesscom_json_arr[i].chess_bullet?.last?.rating || 'N/A'
+                (chesscom_json_arr[i]?.chess_rapid?.last?.rating) || 'N/A',
+                (chesscom_json_arr[i]?.chess_blitz?.last?.rating) || 'N/A',
+                (chesscom_json_arr[i]?.chess_bullet?.last?.rating) || 'N/A'
               ];
 
-            // Handle lichess.org data
+            // Handle lichess.org data with additional null checks
             const lichessRatings = lichessorg_arr[i] === "-" || !lichessorg_json_arr[i] ?
               ['N/A', 'N/A', 'N/A'] :
               [
-                lichessorg_json_arr[i].perfs?.rapid?.rating || 'N/A',
-                lichessorg_json_arr[i].perfs?.blitz?.rating || 'N/A',
-                lichessorg_json_arr[i].perfs?.bullet?.rating || 'N/A'
+                (lichessorg_json_arr[i]?.perfs?.rapid?.rating) || 'N/A',
+                (lichessorg_json_arr[i]?.perfs?.blitz?.rating) || 'N/A',
+                (lichessorg_json_arr[i]?.perfs?.bullet?.rating) || 'N/A'
               ];
 
             tableData.push([
@@ -244,41 +257,51 @@
             ]);
           }
 
-          // Initialize DataTable with sorting enabled and custom classes
-          $('#Rankings').DataTable({
-            data: tableData,
-            pageLength: 25,
-            order: [[0, 'asc']], // Default sort by ID
-            columnDefs: [
-              { 
-                targets: [2,3,4,6,7,8], // Rating columns
-                type: 'num',
-                render: function(data, type, row, meta) {
-                  if (type === 'display') {
-                    return data === -1 ? 'N/A' : data;
-                  }
-                  return data === 'N/A' ? -1 : data;
+          try {
+            // Initialize DataTable with sorting enabled and custom classes
+            dataTable = $('#Rankings').DataTable({
+              data: tableData,
+              pageLength: 25,
+              order: [[0, 'asc']], // Default sort by ID
+              columnDefs: [
+                { 
+                  targets: [2,3,4,6,7,8], // Rating columns
+                  type: 'num',
+                  render: function(data, type, row, meta) {
+                    if (type === 'display') {
+                      return data === -1 ? 'N/A' : data;
+                    }
+                    return data === 'N/A' ? -1 : data;
+                  },
+                  className: 'tg-ilgv'
                 },
-                className: 'tg-ilgv'
-              },
-              {
-                targets: [0],
-                className: 'tg-ilgv-center'
-              },
-              {
-                targets: [1,5],
-                className: 'tg-ilgv'
+                {
+                  targets: [0],
+                  className: 'tg-ilgv-center'
+                },
+                {
+                  targets: [1,5],
+                  className: 'tg-ilgv'
+                }
+              ],
+              createdRow: function(row, data, dataIndex) {
+                $(row).addClass('tg-row');
               }
-            ],
-            createdRow: function(row, data, dataIndex) {
-              $(row).addClass('tg-row');
-            }
-          });
+            });
+          } catch (error) {
+            console.error('Error initializing DataTable:', error);
+          }
         })
         .catch(error => {
           console.error('Error:', error);
-          document.getElementById('test').textContent = 'Error: ' + error.message;
         });
+
+      // Cleanup when page is unloaded
+      window.onunload = function() {
+        if (dataTable && $.fn.DataTable.isDataTable('#Rankings')) {
+          dataTable.destroy();
+        }
+      };
     </script>
   </body>
 </html>
