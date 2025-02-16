@@ -9,6 +9,11 @@
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
     <style type="text/css">
+      body {
+        background-color: #f0f0f0;
+        padding: 20px;
+      }
+      
       .styled-table {
         border-collapse: collapse;
         margin: 25px 0;
@@ -16,6 +21,7 @@
         font-family: sans-serif;
         min-width: 600px;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        background-color: #ffffff;
       }
       .styled-table thead tr {
         background-color: #de0000;
@@ -58,26 +64,33 @@
       .tg .tg-49iy {
         font-family: Georgia, serif !important;
         text-align: center;
-        vertical-align: center;
+        vertical-align: top;
         width: 100px;
       }
       .tg .tg-larh {
         font-family: Georgia, serif !important;
         text-align: center;
-        vertical-align: center;
+        vertical-align: top;
       }
       .tg .tg-ilgv {
         font-family: Georgia, serif !important;
         text-align: left;
-        vertical-align: center;
+        vertical-align: top;
       }
       .tg .tg-ilgv-center {
         font-family: Georgia, serif !important;
         text-align: center;
-        vertical-align: center;
+        vertical-align: top;
       }
 
       /* DataTables specific styles */
+      .dataTables_wrapper {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+      }
+
       .dataTables_wrapper .dataTables_length,
       .dataTables_wrapper .dataTables_filter,
       .dataTables_wrapper .dataTables_info,
@@ -117,11 +130,6 @@
       table.dataTable tbody tr:nth-of-type(even):hover {
         background-color: #e0e0e0;
       }
-
-      /* Shadow */
-      .dataTables_wrapper {
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-      }
     </style>
   </head>
   <body>
@@ -147,6 +155,7 @@
       </tbody>
     </table>
     <script type="text/javascript">
+    
       var member_count = 0;
       var id_arr = [];
       var name_arr = [];
@@ -228,7 +237,7 @@
                 className: 'tg-ilgv-center'
               },
               {
-                targets: [0,1,5],
+                targets: [1,5],
                 className: 'tg-ilgv'
               }
             ],
