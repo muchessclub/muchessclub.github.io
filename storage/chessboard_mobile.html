@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chess</title>
+    <link rel="stylesheet"
+      href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
+      integrity="sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU"
+      crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+      integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+      crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"
+      integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD"
+      crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"
+      type="text/javascript"
+      crossorigin="anonymous"></script>
+    <style>
+      .notation-322f9{
+        font-size:6px !important;
+      }
+      .white-1e1d7{
+        background-color:#cccccc !important;
+        color:#8e8e8e !important;
+      }
+      .black-3c85d{
+        background-color:#8e8e8e !important;
+        color:#cccccc !important;
+      }
+      .headingStyle {
+         color: #fff;
+         font-family: 'freight-big-pro';
+         font-size: 10px;
+         font-weight: 1000;
+         text-shadow: 0.5px 0 #000, -0.5px 0 #000, 0 0.5px #000, 0 -0.5px #000, 
+         0.5px 0.5px #000, -0.5px -0.5px #000, 0.5px -0.5px #000, -0.5px 0.5px #000;
+         overflow-wrap: break-world;
+      }
+      .buttonStyle {
+        background-color: #fff;
+        border: 1px solid #000;
+        border-radius: 40px;
+        box-shadow: #000 1px 1px 0 0;
+        color: #000;
+        cursor: pointer;
+        display: inline-block;
+        font-weight: 600;
+        font-size: 7px;
+        padding: 0 3px;
+        line-height: 12px;
+        text-align: center;
+        text-decoration: none;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        margin-top: 5px;
+        margin-bottom: 5px;
+      }
+      .buttonStyle:hover {
+        background-color: #e5e5e5;
+      }
+      .buttonStyle:active {
+        box-shadow: #000 1px 1px 0 0;
+        transform: translate(1px, 1px);
+      }
+      @media (min-width: 768px) {
+        .buttonStyle {
+          min-width: 60px;
+          padding: 0 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div style="text-align: center">
+      <label id="gameName" class="headingStyle">Game Name</label>
+    </div>
+    <div id="board" style="margin: 0 auto; width: 200px; margin-top: 10px"></div>
+    <div style="margin: 5px auto; width: 200px;">
+      <center>
+        <input class="buttonStyle" type="button" id="backGameBtn" value="Back" float="left" />
+        <input class="buttonStyle" type="button" id="startPositionBtn" value="<<" />
+        <input class="buttonStyle" type="button" id="prevBtn" value="<" />
+        <input class="buttonStyle" type="button" id="nextBtn" value=">" />
+        <input class="buttonStyle" type="button" id="endPositionBtn" value=">>" />
+        <input class="buttonStyle" type="button" id="nextGameBtn" value="Next" float="right" />
+        <input class="buttonStyle" type="button" id="autoBtn" value="Auto" />
+        <input class="buttonStyle" type="button" id="flipBtn" value="Flip" />
+      </center>
+    </div>
+    <script>
+        // Ensure that jquery.js, chessboard.js and chess.js are loaded properly
+        var config = {
+            pieceTheme: `https://raw.githubusercontent.com/koblenski/koblenski.github.io/refs/heads/master/javascript/chessboardjs-0.3.0/img/chesspieces/wikipedia/{piece}.png`,
+            position: 'start'
+        }
+        var board = ChessBoard('board', config);
+        var game = new Chess();
+        // autoBool ensures that certain buttons don't function in Auto mode
+        var autoBool = false;
+        var notAutoMode = document.getElementById('autoBtn');
+        notAutoMode.value = 'Auto';
+        // 0. Store available PGNs (as objects)
+        var pgn0 = {
+          gameInfo: 'Kasparov vs. Topalov (1-0), Wijk aan Zee 1999',
+          gameMoves: `1. e4 d6 2. d4 Nf6 3. Nc3 g6 4. Be3 Bg7 5. Qd2 c6 6. f3 b5 7. Nge2 Nbd7 8. Bh6
+          Bxh6 9. Qxh6 Bb7 10. a3 e5 11. O-O-O Qe7 12. Kb1 a6 13. Nc1 $6 O-O-O $2 14. Nb3 $6
+          exd4 15. Rxd4 c5 16. Rd1 Nb6 17. g3 $6 Kb8 $6 18. Na5 $6 Ba8 19. Bh3 d5 20. Qf4+
+          Ka7 21. Rhe1 d4 $1 22. Nd5 Nbxd5 23. exd5 Qd6 24. Rxd4 $1 cxd4 $2 25. Re7+ $3 Kb6 26.
+          Qxd4+ Kxa5 27. b4+ $1 Ka4 28. Qc3 $1 Qxd5 29. Ra7 $1 Bb7 30. Rxb7 Qc4 31. Qxf6 Kxa3 $2
+          (31... Rd1+ 32. Kb2 Ra8) 32. Qxa6+ $1 Kxb4 33. c3+ $1 Kxc3 34. Qa1+ $1 Kd2 35. Qb2+ $1
+          Kd1 36. Bf1 $3 Rd2 37. Rd7 $3 Rxd7 38. Bxc4 bxc4 39. Qxh8 Rd3 40. Qa8 c3 41. Qa4+
+          Ke1 42. f4 f5 43. Kc1 Rd2 44. Qa7 1-0`
+        };
+        var pgn1 = {
+          gameInfo: 'Morphy vs. Allies (1-0), Paris Opera 1858',
+          gameMoves: `1. e4 e5 2. Nf3 d6 3. d4 Bg4 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 Nf6 7. Qb3 Qe7 8.
+          Nc3 c6 9. Bg5 b5 10. Nxb5 cxb5 11. Bxb5+ Nbd7 12. O-O-O Rd8 13. Rxd7 Rxd7 14.
+          Rd1 Qe6 15. Bxd7+ Nxd7 16. Qb8+ Nxb8 17. Rd8# 1-0`
+        };
+        var pgn2 = {
+          gameInfo: 'Aronian vs. Anand (0-1), Wijk aan Zee 2013',
+          gameMoves: `1. d4 d5 2. c4 c6 3. Nf3 Nf6 4. Nc3 e6 5. e3 Nbd7 6. Bd3 dxc4 7. Bxc4 b5 8. Bd3
+          Bd6 9. O-O O-O 10. Qc2 Bb7 11. a3 Rc8 12. Ng5 c5 13. Nxh7 Ng4 14. f4 cxd4 15.
+          exd4 Bc5 16. Be2 Nde5 17. Bxg4 Bxd4+ 18. Kh1 Nxg4 19. Nxf8 f5 20. Ng6 Qf6 21. h3
+          Qxg6 22. Qe2 Qh5 23. Qd3 Be3 0-1`
+        };
+        var pgnArr = [pgn0, pgn1, pgn2];
+        var pgnIndx = 0;
+        // 1. Load a PGN into the game
+        var pgn = pgnArr[pgnIndx].gameMoves;
+        game.load_pgn(pgn);
+        var gameName = document.getElementById('gameName');
+        gameName.textContent = pgnArr[pgnIndx].gameInfo;
+        // 2. Get the full move history
+        var historyArr = game.history();
+        game.reset();
+        var i = 0;
+        // 3. If Next button clicked, move forward one
+        function nextBtnCall () {
+          game.move(historyArr[i]);
+          board.position(game.fen());
+          i += 1;
+          if (i > historyArr.length) i = historyArr.length;
+        };
+        $('#nextBtn').on('click', function () {
+          if (!autoBool) nextBtnCall();
+        });
+        // 4. If Prev button clicked, move backward one
+        function prevBtnCall () {
+          game.undo();
+          board.position(game.fen());
+          i -= 1;
+          if (i < 0) i = 0;
+        };
+        $('#prevBtn').on('click', function () {
+          if (!autoBool) prevBtnCall();
+        });
+        // 5. If Start button clicked, go to start position
+        function startPosBtnCall () {
+          game.reset();
+          board.start();
+          i = 0;
+        };
+        $('#startPositionBtn').on('click', function () {
+          if (!autoBool) startPosBtnCall();
+        });
+        // 6. If End button clicked, go to end position
+        function endPosBtnCall () {
+          game.load_pgn(pgn);
+          board.position(game.fen());
+          i = historyArr.length;
+        };
+        $('#endPositionBtn').on('click', function () {
+          if (!autoBool) endPosBtnCall();
+        });
+        // 7. If BackGame/NextGame button clicked, change PGN accordingly
+        function initialiseBoard () {
+          pgn = pgnArr[pgnIndx].gameMoves;
+          game.load_pgn(pgn);
+          historyArr = game.history();
+          game.reset();
+          board.start();
+          i = 0;
+          gameName.textContent = pgnArr[pgnIndx].gameInfo;
+        };
+        function backGameBtnCall () {
+          if (pgnIndx > 0) pgnIndx -= 1
+          else pgnIndx = pgnArr.length - 1;
+          initialiseBoard();
+        };
+        function nextGameBtnCall () {
+          if (pgnIndx <= pgnArr.length - 2) pgnIndx += 1
+          else pgnIndx = 0;
+          initialiseBoard();
+        };
+        $('#backGameBtn').on('click', backGameBtnCall);
+        $('#nextGameBtn').on('click', nextGameBtnCall);
+        // 8. If Auto button clicked, display moves automatically (here, recursively)
+        function autoMove () {
+          // If end of game reached, go to next game
+          if (i == historyArr.length) {
+            autoBool = false;
+            window.setTimeout(nextGameBtnCall, 500);
+            window.setTimeout(autoBtnCall, 500);
+          }
+          // Stop Auto mode if Manual mode manually entered
+          if (!autoBool) return;
+          nextBtnCall();
+          window.setTimeout(autoMove, 500);
+        };
+        function autoBtnCall () {
+          if (!autoBool) {
+            autoBool = true;
+            notAutoMode.value = "Manual";
+            window.setTimeout(autoMove, 500);
+          }
+          else {
+            autoBool = false;
+            notAutoMode.value = "Auto";
+          }
+        };
+        $('#autoBtn').on('click', autoBtnCall);
+        // 9. If Flip button clicked, flip the board
+        $('#flipBtn').on('click', board.flip);
+    </script>
+  </body>
+</html>
